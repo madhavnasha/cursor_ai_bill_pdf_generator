@@ -134,6 +134,36 @@ const InvoiceForm = () => {
           <div className="form-section">
             <h3>Invoice Details</h3>
             <div className="form-group">
+              <label>GST Number</label>
+              <input
+                {...register('gst')}
+                placeholder="XX-XXXXX-XXXX"
+                className={errors.gst ? 'error' : ''}
+              />
+              {errors.gst && <p className="error-message">{errors.gst.message}</p>}
+            </div>
+            
+            <div className="form-group">
+              <label>PAN Number</label>
+              <input
+                {...register('pan')}
+                placeholder="XXXXXXXXXX"
+                className={errors.pan ? 'error' : ''}
+              />
+              {errors.pan && <p className="error-message">{errors.pan.message}</p>}
+            </div>
+            
+            <div className="form-group">
+              <label>Truck Number</label>
+              <input
+                {...register('truckNumber')}
+                placeholder="XX-XX-XXXX"
+                className={errors.truckNumber ? 'error' : ''}
+              />
+              {errors.truckNumber && <p className="error-message">{errors.truckNumber.message}</p>}
+            </div>
+            
+            <div className="form-group">
               <label>Invoice Date</label>
               <input
                 type="date"

@@ -1,8 +1,10 @@
 import React, { useRef } from 'react';
-import { PDFDownloadLink, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import './InvoicePreview.css';
+import anandRoadlinesLogo from '../assets/images/new-anand-roadlines-high-resolution-logo-final.png';
+import saiBabaLogo from '../assets/images/sai-baba.jpg';
 
 // Create styles for PDF
 const styles = StyleSheet.create({
@@ -120,6 +122,17 @@ const InvoicePDF = ({ invoiceData }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        <View style={{ flexDirection: 'row', marginBottom: 20 }}>
+          <Image src={saiBabaLogo} style={{ width: 70, height: 70, className: 'sai-baba-logo', marginRight: 10 }} />
+          <Image src={anandRoadlinesLogo} style={{ className: 'company-logo', width: 120 }} />
+        </View>
+        
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, borderBottomWidth: 1, borderBottomColor: '#CCCCCC', paddingBottom: 10 }}>
+          <Text style={{ fontSize: 10 }}>GST: {invoiceData.gst || 'XX-XXXXX-XXXX'}</Text>
+          <Text style={{ fontSize: 10 }}>PAN: {invoiceData.pan || 'XXXXXXXXXX'}</Text>
+          <Text style={{ fontSize: 10 }}>Truck No: {invoiceData.truckNumber || 'XX-XX-XXXX'}</Text>
+        </View>
+        
         <Text style={styles.header}>INVOICE</Text>
         
         <View style={styles.row}>
@@ -235,10 +248,15 @@ const InvoicePreview = ({ invoiceData }) => {
     // Get the invoice element
     const invoice = invoiceRef.current;
     
-    // Use html2canvas to convert the element to a canvas
-    html2canvas(invoice).then(canvas => {
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
+    // Use html2canvas to convert the element to a canvas with lower scale for smaller file size
+    html2canvas(invoice, { 
+      scale: 1.5, // Lower scale for better compression (default is 2)
+      logging: false,
+      useCORS: true,
+      allowTaint: true
+    }).then(canvas => {
+      const imgData = canvas.toDataURL('image/jpeg', 0.7); // Use JPEG with 70% quality instead of PNG
+      const pdf = new jsPDF('p', 'mm', 'a4', true); // Enable compression
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       const imgWidth = canvas.width;
@@ -247,7 +265,7 @@ const InvoicePreview = ({ invoiceData }) => {
       const imgX = (pdfWidth - imgWidth * ratio) / 2;
       const imgY = 30;
       
-      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio, '', 'FAST');
       pdf.save(`invoice_${invoiceData.invoiceId}.pdf`);
     });
   };
@@ -258,6 +276,17 @@ const InvoicePreview = ({ invoiceData }) => {
       
       <div ref={invoiceRef} className="invoice">
         <div className="invoice-header">
+          <div className="logo-container" style={{ display: 'flex', marginBottom: '20px' }}>
+            <img src={saiBabaLogo} alt="Sai Baba Logo" className="sai-baba-logo" style={{ width: '70px', height: '70px', marginRight: '10px' }} />
+            <img src={anandRoadlinesLogo} alt="Anand Roadlines Logo" className="company-logo" style={{ width: '120px' }} />
+          </div>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #CCCCCC', paddingBottom: '10px' }}>
+            <span style={{ fontSize: '12px' }}>GST: {invoiceData.gst || 'XX-XXXXX-XXXX'}</span>
+            <span style={{ fontSize: '12px' }}>PAN: {invoiceData.pan || 'XXXXXXXXXX'}</span>
+            <span style={{ fontSize: '12px' }}>Truck No: {invoiceData.truckNumber || 'XX-XX-XXXX'}</span>
+          </div>
+          
           <h1>INVOICE</h1>
         </div>
         
@@ -346,22 +375,7 @@ const InvoicePreview = ({ invoiceData }) => {
       </div>
       
       <div className="pdf-actions">
-        <button onClick={generatePDF} className="download-btn">Download as PDF</button>
-        
-        <PDFDownloadLink 
-          document={<InvoicePDF invoiceData={invoiceData} />} 
-          fileName={`invoice_${invoiceData.invoiceId}.pdf`}
-          className="download-btn pdf-link"
-        >
-          {({ blob, url, loading, error }) => {
-            if (loading) return 'Generating PDF...';
-            if (error) {
-              console.error('Error generating PDF:', error);
-              return 'Error generating PDF';
-            }
-            return 'Download PDF (React-PDF)';
-          }}
-        </PDFDownloadLink>
+        <button onClick={generatePDF} className="download-btn">Download PDF</button>
       </div>
     </div>
   );
